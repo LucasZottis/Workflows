@@ -1,0 +1,28 @@
+name: Build e testes
+
+on:
+  pull_request:
+    branches: [Main]
+
+jobs:
+  build-e-testes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Instalar o SDK do .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restaurar pacotes
+        run: dotnet restore JogadinhaDePaiol.slnx
+
+      - name: Compilar em Release
+        run: dotnet build JogadinhaDePaiol.slnx --configuration Release --no-restore
+
+      - name: Executar testes
+        run: dotnet test JogadinhaDePaiol.slnx --configuration Release --no-build
