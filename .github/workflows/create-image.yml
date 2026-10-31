@@ -1,9 +1,16 @@
-name: Deploy
+name: Criar imagem
 
 on:
-  release:
-    types: [published]
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      package-name:
+        description: Nome do pacote no GHCR (sem o dono)
+        required: true
+        type: string
+      tags:
+        description: Tags da imagem, separadas por espaço
+        required: true
+        type: string
 
 jobs:
   build-and-push:
@@ -19,28 +26,18 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Definir nome da imagem em minúsculas
-        run: echo "IMAGE=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-      # Release publicada → produção: tag da release + latest.
-      # Disparo manual (workflow_dispatch) → stage: stage + sha do commit.
-      - name: Definir tags da imagem
-        run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            TAGS="$(echo '${{ github.event.release.tag_name }}' | tr '/' '-') latest"
-          else
-            TAGS="stage sha-${GITHUB_SHA::7}"
-          fi
-          echo "TAGS=$TAGS" >> $GITHUB_ENV
+        env:
+          OWNER: ${{ github.repository_owner }}
+          PACKAGE: ${{ inputs.package-name }}
+        run: echo "IMAGE=ghcr.io/$(echo "$OWNER/$PACKAGE" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Build da imagem Docker
+        env:
+          TAGS: ${{ inputs.tags }}
         run: |
           ARGS=""
-          for t in $TAGS; do ARGS="$ARGS -t ${{ env.IMAGE }}:$t"; done
+          for t in $TAGS; do ARGS="$ARGS -t $IMAGE:$(echo "$t" | tr '/' '-')"; done
           docker build $ARGS .
 
       - name: Push da imagem para o GHCR
-        run: docker push ${{ env.IMAGE }} --all-tags
-
-      # A atualização da VPS em produção ainda não tem mecanismo definido
-      # (ver "Decisões — Deploy de Aplicações na VPS", seção 2 — item em aberto).
-      # Nenhum passo de deploy para a VPS foi adicionado aqui de propósito.
+        run: docker push $IMAGE --all-tags
