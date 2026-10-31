@@ -1,4 +1,4 @@
-name: Build e testes .NET
+name: Build e testes
 
 on:
   workflow_call:
@@ -28,8 +28,5 @@ jobs:
       - name: Restaurar pacotes
         run: dotnet restore $SOLUTION
 
-      - name: Compilar em Release
-        run: dotnet build $SOLUTION --configuration Release --no-restore
-
-      - name: Executar testes
-        run: dotnet test $SOLUTION --configuration Release --no-build
+      - name: Compilar e executar testes
+        run: dotnet test $SOLUTION --configuration Release --no-restore
