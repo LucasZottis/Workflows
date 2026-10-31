@@ -1,16 +1,28 @@
-name: Obter Tag
+name: Definir tags
 
 on:
-  release:
-    types: [published]
-  workflow_dispatch:
+  workflow_call:
+    outputs:
+      tags:
+        description: Tags da imagem, separadas por espaço
+        value: ${{ jobs.definir.outputs.tags }}
 
 jobs:
-  deploy:
-    permissions:
-      contents: read
-      packages: write
-    uses: lucas/workflows-compartilhados/.github/workflows/deploy.yml@v1
-    with:
-      package-name: jogadinha-de-paiol
-      tags: ${{ github.event_name == 'release' && format('{0} latest', github.event.release.tag_name) || format('stage sha-{0}', github.sha) }}
+  definir:
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.tags.outputs.tags }}
+    steps:
+      # Release publicada → produção: tag da release + latest.
+      # Disparo manual (workflow_dispatch) → stage: stage + sha do commit.
+      - id: tags
+        env:
+          EVENT: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [ "$EVENT" = "release" ]; then
+            TAGS="$(echo "$RELEASE_TAG" | tr '/' '-') latest"
+          else
+            TAGS="stage sha-${GITHUB_SHA::7}"
+          fi
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
