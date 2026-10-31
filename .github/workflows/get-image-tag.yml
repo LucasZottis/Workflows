@@ -1,14 +1,14 @@
-name: Definir tags
+name: Get Image TAG
 
 on:
   workflow_call:
     outputs:
       tags:
         description: Tags da imagem, separadas por espaço
-        value: ${{ jobs.definir.outputs.tags }}
+        value: ${{ jobs.get.outputs.tags }}
 
 jobs:
-  definir:
+  get:
     runs-on: ubuntu-latest
     outputs:
       tags: ${{ steps.tags.outputs.tags }}
