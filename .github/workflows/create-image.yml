@@ -1,4 +1,4 @@
-name: Criar imagem
+name: Deploy
 
 on:
   workflow_call:
@@ -11,6 +11,11 @@ on:
         description: Tags da imagem, separadas por espaço
         required: true
         type: string
+      dockerfile:
+        description: Caminho do Dockerfile (padrão = Dockerfile na raiz)
+        required: false
+        type: string
+        default: Dockerfile
 
 jobs:
   build-and-push:
@@ -34,10 +39,15 @@ jobs:
       - name: Build da imagem Docker
         env:
           TAGS: ${{ inputs.tags }}
+          DOCKERFILE: ${{ inputs.dockerfile }}
         run: |
           ARGS=""
           for t in $TAGS; do ARGS="$ARGS -t $IMAGE:$(echo "$t" | tr '/' '-')"; done
-          docker build $ARGS .
+          docker build -f "$DOCKERFILE" $ARGS .
 
       - name: Push da imagem para o GHCR
         run: docker push $IMAGE --all-tags
+
+      # A atualização da VPS em produção ainda não tem mecanismo definido
+      # (ver "Decisões — Deploy de Aplicações na VPS", seção 2 — item em aberto).
+      # Nenhum passo de deploy para a VPS foi adicionado aqui de propósito.
