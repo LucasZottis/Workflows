@@ -28,5 +28,8 @@ jobs:
       - name: Restaurar pacotes
         run: dotnet restore $SOLUTION
 
+      - name: Compilar em Release
+        run: dotnet build $SOLUTION --configuration Release --no-restore
+
       - name: Compilar e executar testes
         run: dotnet test $SOLUTION --configuration Release --no-restore
