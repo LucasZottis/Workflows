@@ -1,4 +1,4 @@
-name: Deploy
+name: Create Image
 
 on:
   workflow_call:
