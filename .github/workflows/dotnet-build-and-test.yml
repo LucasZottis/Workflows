@@ -1,8 +1,7 @@
 name: Build e testes
 
 on:
-  pull_request:
-    branches: [Main]
+  workflow_call:
 
 jobs:
   build-e-testes:
@@ -19,10 +18,10 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restaurar pacotes
-        run: dotnet restore JogadinhaDePaiol.slnx
+        run: dotnet restore
 
       - name: Compilar em Release
-        run: dotnet build JogadinhaDePaiol.slnx --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore
 
       - name: Executar testes
-        run: dotnet test JogadinhaDePaiol.slnx --configuration Release --no-build
+        run: dotnet test --configuration Release --no-build
